@@ -3,24 +3,71 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://acdsign.github.io/post/aether-features/</loc>
-    <lastmod>2018-12-19T10:35:35-05:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://acdsign.github.io/categories/</loc>
-    <lastmod>2018-12-19T10:35:35-05:00</lastmod>
+    <loc>https://acdsign.github.io/categories/big-data/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://acdsign.github.io/categories/features/</loc>
-    <lastmod>2018-12-19T10:35:35-05:00</lastmod>
+    <loc>https://acdsign.github.io/categories/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://acdsign.github.io/categories/development/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://acdsign.github.io/post/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://acdsign.github.io/post/spark-tour/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://acdsign.github.io/tags/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://acdsign.github.io/tags/big-data/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://acdsign.github.io/tags/development/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://acdsign.github.io/tags/docker/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://acdsign.github.io/tags/spark/</loc>
+    <lastmod>2019-11-21T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://acdsign.github.io/post/aether-features/</loc>
+    <lastmod>2018-12-19T10:35:35-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://acdsign.github.io/categories/features/</loc>
     <lastmod>2018-12-19T10:35:35-05:00</lastmod>
     <priority>0</priority>
   </url>
@@ -57,26 +104,8 @@
   </url>
   
   <url>
-    <loc>https://acdsign.github.io/categories/development/</loc>
-    <lastmod>2014-04-02T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://acdsign.github.io/post/hugoisforlovers/</loc>
     <lastmod>2014-04-02T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://acdsign.github.io/tags/</loc>
-    <lastmod>2014-04-02T00:00:00+00:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://acdsign.github.io/tags/development/</loc>
-    <lastmod>2014-04-02T00:00:00+00:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
