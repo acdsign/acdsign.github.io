@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="ltr">
+  <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Spark使用经验 docker部署篇 &middot; ClamP&#39;s Blog</title>
+  <meta name="description" content="使用docker快速部署Spark Standalone架构，搭建一个3个节点的小型集群。并且通过docker使用spark-shell来使用Spark。" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.css" integrity="sha384-9eLZqc9ds8eNjO3TmqPeYcDj8n+Qfa4nuSiGYa6DjLNcv9BtN69ZIulL9+8CqC9Y" crossorigin="anonymous">
+  
+  
+  
+  
+  <link href="https://acdsign.github.io/css/concated.min.css" rel="stylesheet">
+  
+  <style>
+    body {
+      background: #ecedef url("https://acdsign.github.io/img/ignasi_pattern_s.png") repeat;
+    }
+  </style>
+</head>
+
+  <body class="single-body">
+    <nav class="nav-bar side-padding">
+  <h1 class="nav-header"><a href="https://acdsign.github.io/" class="nav-text">ClamP&#39;s Blog</a></h1>
+  <div class="hamburger-menu">
+    <button onclick="hamburgerMenuPressed.call(this)" aria-haspopup="true" aria-expanded="false" aria-controls="menu" aria-label="Menu">
+      <span></span>
+      <span></span>
+    </button>
+    <ul id="menu" class="hamburger-menu-overlay">
+      <li><a href="https://acdsign.github.io/" class="hamburger-menu-overlay-link">Home</a></li>
+      <li><a href="https://acdsign.github.io/about/" class="hamburger-menu-overlay-link">About Hugo</a></li>
+      <li><a href="https://acdsign.github.io/categories/big-data" class="hamburger-menu-overlay-link">Big data</a></li><li><a href="https://acdsign.github.io/categories/development" class="hamburger-menu-overlay-link">Development</a></li><li><a href="https://acdsign.github.io/categories/features" class="hamburger-menu-overlay-link">Features</a></li><li><a href="https://acdsign.github.io/categories/golang" class="hamburger-menu-overlay-link">Golang</a></li><li><a href="https://acdsign.github.io/categories/web" class="hamburger-menu-overlay-link">Web</a></li>
+    </ul>
+  </div>
+</nav>
+    <main class="content side-text-padding">
+      <article class="post ">
+        <header class="post-header">
+        	<h1 class="post-title">Spark使用经验 docker部署篇</h1>
+          <p class="post-date">Posted <time datetime="2019-11-21">Nov 21, 2019</time></p>
+        </header>
+        
+        <picture class="post-figure">
+            
+            <source srcset="https://www.ibm.com/support/knowledgecenter/SSCTFE_1.1.0/com.ibm.azk.v1r1.azka100/images/spark-ports.gif">
+          <img src="https://www.ibm.com/support/knowledgecenter/SSCTFE_1.1.0/com.ibm.azk.v1r1.azka100/images/spark-ports.gif" >
+        </picture>
+        
+        
+
+<h2 id="一-理解spark的spark-standalone网络架构">一、 理解Spark的Spark Standalone网络架构</h2>
+
+<p>如上图所示，Spark的Spark Standalone集群主要是由Master，Worker，Executor，Driver这4个角色组成。</p>
+
+<p>Master节点会打开3个端口：</p>
+
+<ul>
+<li>8080为Web UI端口，用来看集群的整体情况；</li>
+<li>7077为Master的数据端口，用来接收Driver提交的任务和与worker进行数据交互；</li>
+<li>6066为Master的REST API端口。</li>
+</ul>
+
+<p>Worker节点和Executor在同一台机器，所以也需要打开3个端口：</p>
+
+<ul>
+<li>8081为Web UI端口，用来看Worker自身的情况；</li>
+<li>随机侦听一个端口（也可以手工指派），用于与Master进行通信；</li>
+<li>Executor创建时随机打开一个端口，用于与Driver进行Block管理交换信息。</li>
+</ul>
+
+<p>Driver需要打开3个端口：</p>
+
+<ul>
+<li>4040为Web UI端口，用来看Driver自身的情况；</li>
+<li>随机侦听一个端口（也可以手工指派），用于与Executor进行Block管理交换信息；</li>
+<li>随机侦听一个端口（也可以手工指派），用于与Executor进行信息交换；</li>
+</ul>
+
+<h2 id="二-通过docker部署spark-standalone集群">二、通过Docker部署Spark Standalone集群</h2>
+
+<p>根据上述的4个角色的网络架构，在创建容器时要指定和打开相应的端口才能使集群正常工作。具体操作如下：</p>
+
+<ol>
+<li><p>拉取spark的镜像</p>
+
+<ul>
+<li>建议使用欧洲大数据社区制作的spark影像</li>
+<li>master镜像：</li>
+</ul>
+
+<pre><code class="language-bash">docker pull dockerhub.azk8s.cn/bde2020/spark-master:2.4.4-hadoop2.7
+</code></pre>
+
+<ul>
+<li>worker镜像：</li>
+</ul>
+
+<pre><code class="language-bash">docker pull dockerhub.azk8s.cn/bde2020/spark-worker:2.4.4-hadoop2.7
+</code></pre></li>
+
+<li><p>启动Master（后3个端口是为Driver预留的）</p>
+
+<pre><code>docker run --name spark-master -h spark-master -e ENABLE_INIT_DAEMON=false -p 6066:6066 -p 7077:7077 -p 8080:8080 -p 4040:4040 -p 30000:30000 -p 40000:40000 -d dockerhub.azk8s.cn/bde2020/spark-master:2.4.4-hadoop2.7
+</code></pre></li>
+
+<li><p>启动Worker</p>
+
+<pre><code class="language-bash">docker run --net host --name spark-worker-1 -e SPARK_MASTER=&quot;spark://192.168.0.1:7077&quot; -e SPARK_PUBLIC_DNS=&quot;192.168.0.2&quot; -e SPARK_LOCAL_IP=&quot;192.168.0.2&quot; -e SPARK_WORKER_PORT=&quot;34000&quot; -p 34000:34000 -p 8081:8081 -e ENABLE_INIT_DAEMON=false -d dockerhub.azk8s.cn/bde2020/spark-worker:2.4.4-hadoop2.7
+</code></pre>
+
+<ul>
+<li>SPARK_MASTER环境变量为Master的地址</li>
+<li>SPARK_PUBLIC_DNS为Web UI上引用的地址</li>
+<li>SPARK_LOCAL_IP为Spark绑定的地址</li>
+<li>关键参数为<code>--net host</code>，因为在容器中worker无法绑定宿主的IP，所以必须使用host网络才能正常启动worker</li>
+</ul>
+
+<ol>
+<li><p>完成后可以通过Master的Web UI查看Worker是否注册成功。</p></li>
+
+<li><p>启动spark-shell</p>
+
+<pre><code class="language-bash">docker exec -it spark-master /spark/bin/spark-shell --jars /spark/mysql.jar --driver-class-path /spark/mysql.jar --conf spark.driver.host=192.168.0.1 --conf spark.driver.bindAddress=0.0.0.0 --conf spark.driver.port=30000 --conf spark.driver.blockManager.port=40000 --master spark://192.168.0.1:7077 --executor-memory 4G --executor-cores 10 
+</code></pre></li>
+</ol>
+
+<ul>
+<li>由于Master的镜像中已经包含spark-shell，因此可以通过docker exec来运行spark-shell</li>
+<li>必须指定<code>--master</code>参数，Driver才会进入集群模式，否则就是单机模式。</li>
+<li>必要时可以指定<code>--executor-cores</code>和<code>--executor-memory</code>来限制使用多少个核和多少内存。</li>
+</ul></li>
+</ol>
+
+<h2 id="总结">总结</h2>
+
+<p>经过上述步骤，可以轻松部署到一个Spark Standalone集群。如果需要增加Worker，只需要在另外的机器上重复Worker的部署命令即可。</p>
+
+<p>参考文献：</p>
+
+<ul>
+<li><a href="https://stackoverflow.com/questions/45489248/running-spark-driver-program-in-docker-container-no-connection-back-from-execu">Running Spark driver program in Docker container - no connection back from executor to the driver?</a></li>
+</ul>
+
+      </article>
+      
+    </main>
+    <nav class="end-nav side-padding">
+      
+      <a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
+  href="https://acdsign.github.io/post/aether-features/" class="card blog-card" rel="bookmark" >
+    
+    <div class="card-img-container">
+      <p class="card-img-overlay">Next Article</p>
+      <picture>
+        
+        <source srcset="https://acdsign.github.io/img/mdd-iphone.jpg">
+        <img src="https://acdsign.github.io/img/mdd-iphone.jpg" class="card-img" >
+      </picture>
+    </div>
+    
+  <article class="card-body">
+    <h2 class="card-title">Aether Features</h2>
+    <p class="card-text">Hugo combined with the Aether theme turns easy to write markdown into powerful web pages.  KaTeX, Highlight.js, and Hugo provides the ability to create mathmatical symobols, equations, highlighted code, tables, lists, and much more.</p>
+    <div class="card-subtext muted-text">
+      <p>Posted <time datetime="2018-12-19 1219:00">Dec 19, 2018</time></p>
+      <p>#Features </p>
+    </div>
+  </article>
+</a>
+      
+      <a ontouchstart="cardPressed.call(this)" ontouchend="cardReleased.call(this)" ontouchmove="cardReleased.call(this)" 
+  href="https://acdsign.github.io/" class="card home-card" style="background-image: url( https://acdsign.github.io/img/grey-cloud.jpg )" rel="bookmark" >
+  Home
+</a>
+    </nav>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.13.1/highlight.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/katex.min.js" integrity="sha384-K3vbOmF2BtaVai+Qk37uypf7VrgBubhQreNQe9aGsz9lB63dIFiQVlJbr92dw2Lx" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.10.0/dist/contrib/auto-render.min.js" integrity="sha384-kmZOZB5ObwgQnS/DuDg6TScgOiWWBiVt0plIRkZCmE6rDZGrEOQeHM5PcHi+nyqe" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+  
+  <script src="https://acdsign.github.io/js/core.min.js"></script>
+<script>
+  hljs.initHighlightingOnLoad();
+</script>
+
+  </body>
+</html>
