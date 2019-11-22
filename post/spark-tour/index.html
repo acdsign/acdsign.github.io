@@ -88,18 +88,17 @@
 
 <ul>
 <li>建议使用欧洲大数据社区制作的spark影像</li>
-<li>master镜像：</li>
-</ul>
 
-<pre><code class="language-bash">docker pull dockerhub.azk8s.cn/bde2020/spark-master:2.4.4-hadoop2.7
-</code></pre>
+<li><p>master镜像：</p>
 
-<ul>
-<li>worker镜像：</li>
-</ul>
-
-<pre><code class="language-bash">docker pull dockerhub.azk8s.cn/bde2020/spark-worker:2.4.4-hadoop2.7
+<pre><code>docker pull dockerhub.azk8s.cn/bde2020/spark-master:2.4.4-hadoop2.7
 </code></pre></li>
+
+<li><p>worker镜像：</p>
+
+<pre><code>docker pull dockerhub.azk8s.cn/bde2020/spark-worker:2.4.4-hadoop2.7
+</code></pre></li>
+</ul></li>
 
 <li><p>启动Master（后3个端口是为Driver预留的）</p>
 
@@ -108,7 +107,7 @@
 
 <li><p>启动Worker</p>
 
-<pre><code class="language-bash">docker run --net host --name spark-worker-1 -e SPARK_MASTER=&quot;spark://192.168.0.1:7077&quot; -e SPARK_PUBLIC_DNS=&quot;192.168.0.2&quot; -e SPARK_LOCAL_IP=&quot;192.168.0.2&quot; -e SPARK_WORKER_PORT=&quot;34000&quot; -p 34000:34000 -p 8081:8081 -e ENABLE_INIT_DAEMON=false -d dockerhub.azk8s.cn/bde2020/spark-worker:2.4.4-hadoop2.7
+<pre><code>docker run --net host --name spark-worker-1 -e SPARK_MASTER=&quot;spark://192.168.0.1:7077&quot; -e SPARK_PUBLIC_DNS=&quot;192.168.0.2&quot; -e SPARK_LOCAL_IP=&quot;192.168.0.2&quot; -e SPARK_WORKER_PORT=&quot;34000&quot; -p 34000:34000 -p 8081:8081 -e ENABLE_INIT_DAEMON=false -d dockerhub.azk8s.cn/bde2020/spark-worker:2.4.4-hadoop2.7
 </code></pre>
 
 <ul>
@@ -116,16 +115,13 @@
 <li>SPARK_PUBLIC_DNS为Web UI上引用的地址</li>
 <li>SPARK_LOCAL_IP为Spark绑定的地址</li>
 <li>关键参数为<code>--net host</code>，因为在容器中worker无法绑定宿主的IP，所以必须使用host网络才能正常启动worker</li>
-</ul>
-
-<ol>
-<li><p>完成后可以通过Master的Web UI查看Worker是否注册成功。</p></li>
+<li>完成后可以通过Master的Web UI查看Worker是否注册成功。</li>
+</ul></li>
 
 <li><p>启动spark-shell</p>
 
-<pre><code class="language-bash">docker exec -it spark-master /spark/bin/spark-shell --jars /spark/mysql.jar --driver-class-path /spark/mysql.jar --conf spark.driver.host=192.168.0.1 --conf spark.driver.bindAddress=0.0.0.0 --conf spark.driver.port=30000 --conf spark.driver.blockManager.port=40000 --master spark://192.168.0.1:7077 --executor-memory 4G --executor-cores 10 
-</code></pre></li>
-</ol>
+<pre><code>docker exec -it spark-master /spark/bin/spark-shell --jars /spark/mysql.jar --driver-class-path /spark/mysql.jar --conf spark.driver.host=192.168.0.1 --conf spark.driver.bindAddress=0.0.0.0 --conf spark.driver.port=30000 --conf spark.driver.blockManager.port=40000 --master spark://192.168.0.1:7077 --executor-memory 4G --executor-cores 10 
+</code></pre>
 
 <ul>
 <li>由于Master的镜像中已经包含spark-shell，因此可以通过docker exec来运行spark-shell</li>
@@ -138,7 +134,7 @@
 
 <p>经过上述步骤，可以轻松部署到一个Spark Standalone集群。如果需要增加Worker，只需要在另外的机器上重复Worker的部署命令即可。</p>
 
-<p>参考文献：</p>
+<h4 id="参考文献">参考文献</h4>
 
 <ul>
 <li><a href="https://stackoverflow.com/questions/45489248/running-spark-driver-program-in-docker-container-no-connection-back-from-execu">Running Spark driver program in Docker container - no connection back from executor to the driver?</a></li>
